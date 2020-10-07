@@ -1,9 +1,12 @@
-param (
-    [string]$Path = $(throw "-Path es parametro obligatorio!"),
-    [string]$resultado, # = TODO: agregar path por defecto si no se ingresa nada. 
-    [int]$umbral = 100 # TODO: aca por def iria el promedio de peso de archivos.
+﻿#Si el archivo está en UTF8 se ven bien los dos puntos
+#Si utilizas codificación ASCII te va a mostrar cualquier cosa
+#incluso puede verse otro caracter por consola
+#pero el nombre del archivo de salida debería verse bien
+#en el explorador de windows
 
-)
-write-output "el path es $path"
-write-output "el path res es $resultado"
-write-output "el umbral es $umbral"
+$date=Get-Date -Format "yyyy-MM-dd_HH꞉mm꞉ss" 
+$path_informe="./resultado_$date.out"
+"prueba de escritura de arch" | Out-File -LiteralPath $path_informe
+
+
+### uso dos puntos latino (˸) ya que el dos puntos de US : es caracter reservado y no se puede escapear.
