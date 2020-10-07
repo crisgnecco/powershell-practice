@@ -16,6 +16,12 @@ param (
     [int]$Umbral # si no se ingresa, aca se asigna el tam promedio de archivos. en kB
 )
 
+###     genero el nombre del archivo
+
+# aca se uso los dos puntos latinos ya que los dos puntos de US son reservados.
+$date=Get-Date -Format "yyyy-MM-dd_HH꞉mm꞉ss" #TODO: revisar los :
+$path_informe="./resultado_$date.out"
+
 
 ###     Calcular el promedio de pesos para umbral por defecto
 
@@ -48,6 +54,8 @@ if ( -not $umbral ) { # si no se paso por parametro
 
 ### Main ###
 $superanUmbralHashTable = @{}
+$duplicadosArray = @() #para saber si ya guarde duplicado de ese file.
+
 
 foreach ( $file in $files ) { 
 
@@ -59,9 +67,41 @@ foreach ( $file in $files ) {
         #you cannot use an integer as an index into the hash table
         $superanUmbralHashTable["$file"] = $file.Length
     } 
+
+    # por cada file, busco uno con el mismo nombre pero diff carpeta
+
+    $nameFile = Split-Path $file -leaf
+    
+    foreach ( $file2 in $files ) { 
+        
+        # obtengo los nomrbes de los arch
+
+        $nameFile2 = Split-Path $file2 -leaf
+
+        #TODO: revisar este bloque de codigo
+        if ( ( !($file2 -eq $file)) -and $nameFile -eq $nameFile2 ) { #
+            #"Duplicado!"
+            #$file2
+
+            ### si no esta en la lista, lo agrego.
+            if (! $duplicadosArray.Contains($nameFile)) {
+                
+                # grabo en arch 
+                # la primera vez q encuentre dup, guarda nombre y la primera ruta, luego solo guardara la ruta de los dupp.
+                "-----------------------" >> $path_informe 
+                $nameFile >> $path_informe 
+                $file >> $path_informe #path
+                
+                $duplicadosArray += $nameFile
+                
+            }else {
+               # $file2 >> $path_informe #path
+            }   
+        }
+
+    }
 }
+# ordeno de forma descendente
+$superanUmbralEnum = $superanUmbralHashTable.GetEnumerator() | Sort-Object -Property Value -Descending
 
-### TODO: ordeno hashTable descendente
-# grabo >> agrega al final
-
-$superanUmbralHashTable
+$superanUmbralEnum | Out-File -LiteralPath $path_informe -Append
