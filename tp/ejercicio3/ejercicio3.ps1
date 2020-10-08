@@ -60,7 +60,7 @@ $duplicadosArray = @() #para saber si ya guarde duplicado de ese file.
 foreach ( $file in $files ) { 
 
     if ($file.Length -gt $umbral) {
-        "supera"
+        #"supera"
 
         #guardo path completo y tamanio en hash table
     
@@ -71,37 +71,58 @@ foreach ( $file in $files ) {
     # por cada file, busco uno con el mismo nombre pero diff carpeta
 
     $nameFile = Split-Path $file -leaf
-    
-    foreach ( $file2 in $files ) { 
-        
-        # obtengo los nomrbes de los arch
+    $esPrimerDuppDeEsteArchivo = 0
 
-        $nameFile2 = Split-Path $file2 -leaf
+    if( ! $duplicadosArray.Contains($nameFile)){
 
-        #TODO: revisar este bloque de codigo
-        if ( ( !($file2 -eq $file)) -and $nameFile -eq $nameFile2 ) { #
-            #"Duplicado!"
-            #$file2
+        foreach ( $file2 in $files ) { 
+            
+            # obtengo los nomrbes de los arch
+            $nameFile2 = Split-Path $file2 -leaf
+            
+            if ( ( !($file2 -eq $file)) -and $nameFile -eq $nameFile2 ) { #               
+                
+                if($esPrimerDuppDeEsteArchivo -eq 0){
+                    
+                    # grabo en arch 
+                    # la primera vez q encuentre dup, guarda nombre y la primera ruta, luego solo guardara la ruta de los dupp.
+                    "-----------------------" >> $path_informe 
+                    
+                    "Nombre: $nameFile " >> $path_informe 
 
-            ### si no esta en la lista, lo agrego.
-            if (! $duplicadosArray.Contains($nameFile)) {
-                
-                # grabo en arch 
-                # la primera vez q encuentre dup, guarda nombre y la primera ruta, luego solo guardara la ruta de los dupp.
-                "-----------------------" >> $path_informe 
-                $nameFile >> $path_informe 
-                $file >> $path_informe #path
-                
-                $duplicadosArray += $nameFile
-                
-            }else {
-               # $file2 >> $path_informe #path
-            }   
+                    "Path: $file " >> $path_informe #path
+
+                    ### armo la ruta para fecha.
+                    if($Path -eq "."){  #TODO: pasar a funcion.
+                        $item = Get-Item $Path/$file
+                    }else {
+                        $item = Get-Item $Path/$file
+                    }
+
+                    $item.LastWriteTime >> $path_informe
+                    
+                    $duplicadosArray += $nameFile
+                    $esPrimerDuppDeEsteArchivo = 1
+                }
+                 
+                "Path: $file2" >> $path_informe #path
+
+                if($Path -eq "."){ #TODO: pasar a funcion.
+                    $item2 = Get-Item $Path/$file2
+                }else {
+                    $item2 = Get-Item $Path/$file2
+                }
+
+                $item2.LastWriteTime >> $path_informe
+            }
+            
         }
-
     }
 }
 # ordeno de forma descendente
 $superanUmbralEnum = $superanUmbralHashTable.GetEnumerator() | Sort-Object -Property Value -Descending
 
 $superanUmbralEnum | Out-File -LiteralPath $path_informe -Append
+
+$content = Get-Content -Path $path_informe
+$content | Format-Table 
