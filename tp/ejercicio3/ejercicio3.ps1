@@ -1,13 +1,24 @@
+﻿#APL 2
+#Ejercicio 3
+#Integrantes:
+#- Castro Gonzalo 41639230
+#- Gnecco Cristian 40024360
+#- Messina Gonzalo 38130447
+#- Pernas Agustin Baltazar 42301787
+#- Rodriguez Nicolas 41666941
+
 <#
 .synopsis
-    determina la existencia de archivos duplicados en el File System 
-    y cuales archivos superan en tamanio un umbral determinado.
- 
+    Determina la existencia de archivos duplicados en el File System 
+    y cuales archivos superan en tamaño un umbral determinado(en KB).
+    Si no se ingresa umbral, se tomara como umbral el peso promedio 
+    de los archivos.
 
 .example
     .\ejercicio3.ps1 -Path . -Resultado . -Umbral 1
     .\ejercicio3.ps1 -Path . -Resultado .
     .\ejercicio3.ps1 -Path .
+
 #>
 
 param (
@@ -16,10 +27,24 @@ param (
     [int]$Umbral # si no se ingresa, aca se asigna el tam promedio de archivos. en kB
 )
 
+### validaciones
+
+if( !(Test-Path $Path)){
+    throw "-Path invalido!"
+} 
+
+if($Umbral -and $Umbral -lt 1){
+    throw "-Umbral debe ser mayor o igual a 1!"
+}
+
+if( $Resultado -and !(Test-Path $Resultado)){
+    throw "-Resultado invalido!"
+} 
+
 ###     genero el nombre del archivo
 
 # aca se uso los dos puntos latinos ya que los dos puntos de US son reservados.
-$date=Get-Date -Format "yyyy-MM-dd_HH꞉mm꞉ss" #TODO: revisar los :
+$date=Get-Date -Format "yyyy-MM-dd_HH꞉mm꞉ss" 
 $path_informe="./resultado_$date.out"
 
 
@@ -29,9 +54,6 @@ $path_informe="./resultado_$date.out"
 $files=Get-ChildItem -Name $Path -File -Recurse     
 
 foreach ( $file in $files ) { #separa por " "
-    
-    #Write-Host $file
-    #Write-Host $file.Length
 
     $acum += $file.Length
     $cont++
@@ -60,15 +82,12 @@ $duplicadosArray = @() #para saber si ya guarde duplicado de ese file.
 foreach ( $file in $files ) { 
 
     if ($file.Length -gt $umbral) {
-        #"supera"
 
         #guardo path completo y tamanio en hash table
-    
-        #you cannot use an integer as an index into the hash table
         $superanUmbralHashTable["$file"] = $file.Length
     } 
 
-    # por cada file, busco uno con el mismo nombre pero diff carpeta
+    ### por cada file, busco uno con el mismo nombre pero diff carpeta
 
     $nameFile = Split-Path $file -leaf
     $esPrimerDuppDeEsteArchivo = 0
@@ -77,43 +96,44 @@ foreach ( $file in $files ) {
 
         foreach ( $file2 in $files ) { 
             
-            # obtengo los nomrbes de los arch
+            # obtengo los nombres de los arch
             $nameFile2 = Split-Path $file2 -leaf
             
             if ( ( !($file2 -eq $file)) -and $nameFile -eq $nameFile2 ) { #               
                 
                 if($esPrimerDuppDeEsteArchivo -eq 0){
                     
-                    # grabo en arch 
                     # la primera vez q encuentre dup, guarda nombre y la primera ruta, luego solo guardara la ruta de los dupp.
                     "-----------------------" >> $path_informe 
                     
                     "Nombre: $nameFile " >> $path_informe 
-
+                    " " >> $path_informe
                     "Path: $file " >> $path_informe #path
 
                     ### armo la ruta para fecha.
-                    if($Path -eq "."){  #TODO: pasar a funcion.
+                    if($Path -eq "."){  
                         $item = Get-Item $Path/$file
                     }else {
                         $item = Get-Item $Path/$file
                     }
 
                     $item.LastWriteTime >> $path_informe
-                    
+                    " " >> $path_informe
+
                     $duplicadosArray += $nameFile
                     $esPrimerDuppDeEsteArchivo = 1
                 }
                  
                 "Path: $file2" >> $path_informe #path
 
-                if($Path -eq "."){ #TODO: pasar a funcion.
+                if($Path -eq "."){ 
                     $item2 = Get-Item $Path/$file2
                 }else {
                     $item2 = Get-Item $Path/$file2
                 }
 
                 $item2.LastWriteTime >> $path_informe
+                " " >> $path_informe
             }
             
         }
@@ -125,4 +145,14 @@ $superanUmbralEnum = $superanUmbralHashTable.GetEnumerator() | Sort-Object -Prop
 $superanUmbralEnum | Out-File -LiteralPath $path_informe -Append
 
 $content = Get-Content -Path $path_informe
+
 $content | Format-Table 
+
+#APL 2
+#Ejercicio 3
+#Integrantes:
+#- Castro Gonzalo 41639230
+#- Gnecco Cristian 40024360
+#- Messina Gonzalo 38130447
+#- Pernas Agustin Baltazar 42301787
+#- Rodriguez Nicolas 41666941
