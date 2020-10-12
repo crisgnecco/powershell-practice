@@ -1,3 +1,12 @@
+#APL 2
+#Ejercicio 1
+#Integrantes:
+#- Castro Gonzalo 41639230
+#- Gnecco Cristian 40024360
+#- Messina Gonzalo 38130447
+#- Pernas Agustin Baltazar 42301787
+#- Rodriguez Nicolas 41666941
+
 Param (
  [Parameter(Position = 1, Mandatory = $false)]
  [String] $pathSalida = ".\procesos.txt ",
@@ -41,4 +50,15 @@ if ($existe -eq $true) {
 #   no existe. Por lo tanto, no sera un archivo valido.
 #   si lo creamos previamente, ya sea dentro o fuera del script, 
 #   funcionara sin problemas. 
+
+
+#APL 2
+#Ejercicio 1
+#Integrantes:
+#- Castro Gonzalo 41639230
+#- Gnecco Cristian 40024360
+#- Messina Gonzalo 38130447
+#- Pernas Agustin Baltazar 42301787
+#- Rodriguez Nicolas 41666941
+
 
