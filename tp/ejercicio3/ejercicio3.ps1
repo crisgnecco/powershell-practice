@@ -18,7 +18,9 @@
     .\ejercicio3.ps1 -Path . -Resultado . -Umbral 1
     .\ejercicio3.ps1 -Path . -Resultado .
     .\ejercicio3.ps1 -Path .
-
+    .\ejercicio3.ps1 -Path .\folder\
+    .\ejercicio3.ps1 -Path .\folder\ -Resultado .
+    .\ejercicio3.ps1 -Path . -Resultado .\folder\
 #>
 
 param (
@@ -45,17 +47,34 @@ if( $Resultado -and !(Test-Path $Resultado)){
 
 # aca se uso los dos puntos latinos ya que los dos puntos de US son reservados.
 $date=Get-Date -Format "yyyy-MM-dd_HH꞉mm꞉ss" 
-$path_informe="./resultado_$date.out"
 
-
+if(($Resultado -ne $Path -and $Resultado -ne ".")){ 
+    $path_informe= $Resultado + "resultado_$date.out" 
+}else {
+    if($Path -eq "." -or $Resultado -eq "."){
+        $path_informe="resultado_$date.out"
+    }else {
+        $path_informe="$Path/resultado_$date.out"
+    }
+}
+$path_informe
 ###     Calcular el promedio de pesos para umbral por defecto
 
-# recorro todos los archivos del dir actual y subdireactorios
+# recorro todos los archivos del dir actual y subdireactorios. El foreach separa por " "
 $files=Get-ChildItem -Name $Path -File -Recurse     
 
-foreach ( $file in $files ) { #separa por " "
+foreach ( $file in $files ) { 
 
-    $acum += $file.Length
+    if($Path -eq "."){
+        $size = (Get-ChildItem $file).Length 
+
+    }else {
+        $busc=$Path + $file
+        $size = (Get-ChildItem $busc).Length    
+    }
+
+    $acum += $size 
+
     $cont++
 }
 
@@ -75,16 +94,27 @@ if ( -not $umbral ) { # si no se paso por parametro
 
 
 ### Main ###
+
+
 $superanUmbralHashTable = @{}
-$duplicadosArray = @() #para saber si ya guarde duplicado de ese file.
+
+# uso duplicadosArray para saber si ya guarde duplicado de ese file.
+$duplicadosArray = @() 
 
 
 foreach ( $file in $files ) { 
+    if($Path -eq "."){
+        $size = (Get-ChildItem $file).Length 
 
-    if ($file.Length -gt $umbral) {
-
-        #guardo path completo y tamanio en hash table
-        $superanUmbralHashTable["$file"] = $file.Length
+    }else {
+        $busc=$Path + $file
+        $size = (Get-ChildItem $busc).Length 
+        
+    }
+    if ($size -gt $umbral) {
+        
+        #si se supera el umbral, guardo path completo y tamanio en hash table
+        $superanUmbralHashTable["$file"] = $size
     } 
 
     ### por cada file, busco uno con el mismo nombre pero diff carpeta
@@ -111,12 +141,8 @@ foreach ( $file in $files ) {
                     "Path: $file " >> $path_informe #path
 
                     ### armo la ruta para fecha.
-                    if($Path -eq "."){  
-                        $item = Get-Item $Path/$file
-                    }else {
-                        $item = Get-Item $Path/$file
-                    }
-
+                    $item = Get-Item $Path/$file
+                    
                     $item.LastWriteTime >> $path_informe
                     " " >> $path_informe
 
@@ -126,11 +152,7 @@ foreach ( $file in $files ) {
                  
                 "Path: $file2" >> $path_informe #path
 
-                if($Path -eq "."){ 
-                    $item2 = Get-Item $Path/$file2
-                }else {
-                    $item2 = Get-Item $Path/$file2
-                }
+                $item2 = Get-Item $Path/$file2
 
                 $item2.LastWriteTime >> $path_informe
                 " " >> $path_informe
